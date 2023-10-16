@@ -12,7 +12,11 @@ export default function ProfileImage({ src, className = "" }: props) {
     <div
       className={`relative h-11 w-11 overflow-hidden rounded-full ${className}`}
     >
-      {src == null ? <VscAccount className="h-full w-full"/> : <Image src={src} alt="profile image" quality={100} fill/>}
+      {src == null ? (
+        <VscAccount className="h-full w-full" />
+      ) : (
+        <Image src={src} alt="profile image" quality={100} fill />
+      )}
     </div>
   );
 }
