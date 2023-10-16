@@ -33,6 +33,8 @@ function Form() {
     textAreaRef.current = textArea;
   }, []);
 
+  const trpcUtils = api.useContext();
+
   useLayoutEffect(() => {
     updateTextAreaSize(textAreaRef.current);
   }, [inputValue]);
@@ -40,6 +42,28 @@ function Form() {
   const createTweet = api.tweet.create.useMutation({
     onSuccess: (newTweet) => {
       setInputValue("");
+
+      if (session.status !== "authenticated") return;
+
+      trpcUtils.tweet.infiniteFeeds.setInfiniteData({}, (oldData) => {
+        if (oldData == null || oldData.pages[0] == null) return;
+
+        const newTweetCache = {
+          ...newTweet,
+          likeCount: 0,
+          likedByMe: false,
+          user: {
+            id: session.data.user.id,
+            name: session.data.user.name || null,
+            image: session.data.user.image || null,
+          },
+        };
+
+        return {
+          ...oldData,
+          pages: [{ ...oldData.pages[0],tweets: [newTweetCache, ...oldData.pages[0].tweets] }, ...oldData.pages.slice(1)],
+        };
+      });
     },
   });
 
@@ -66,7 +90,7 @@ function Form() {
           placeholder="What's happening?"
         ></textarea>
       </div>
-      <Button className="self-end">Tweet</Button>
+      <Button className="self-end">Post</Button>
     </form>
   );
 }
